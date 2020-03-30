@@ -2,6 +2,7 @@ package engine
 
 import (
 	"math"
+	"math/rand"
 )
 
 // Define function used to retrieve distance between 
@@ -47,8 +48,59 @@ func GetRandomPosition() Position { return generateStartingCoordinates() }
 
 // Helper function used to determine if a robot has
 // any move commands queued
-func isMoving(robot Robot) bool { return false }
+func isMoving(robot Robot) bool { 
+
+	// define condition used to filter events based on event source
+	conditionDelayed := func(e DelayedEvent) bool { return (e.Event.EventSource() == robot.RobotName && e.Event.EventType() == "Move") }
+	conditionExecutable := func(e event) bool { return (e.EventSource() == robot.RobotName && e.EventType() == "Move") }
+
+
+	// determine if robot has queued events that match moving event types
+	hasDelayed := len(filterDelayedEvents(robotGame.DelayedEventQueue, conditionDelayed)) != 0
+	hasExecutable := len(filterEvents(robotGame.EventQueue, conditionExecutable)) != 0
+
+	return hasDelayed && hasExecutable
+}
 
 func isNearEdge(robot Robot) bool { return false }
 
 func isOverEdge(robot Robot) bool { return false }
+
+// Define helper function used to filter robots based on arbitrary condition
+func filterRobots(robots []Robot , condition func(robot Robot) bool) (filteredArray []Robot) {
+
+	for _, robot := range robots {
+		if condition(robot) { filteredArray = append(filteredArray, robot) }
+	}
+	return
+}
+
+// Define helper functions used to filter events based on arbitrary condition
+func filterEvents(events []event , condition func(e event) bool) (filteredEvents []event) {
+
+	for _, e := range events {
+		if condition(e) { filteredEvents = append(filteredEvents, e) }
+	}
+	return
+}
+
+// Define helper functions used to filter delayed events based on arbitrary condition
+func filterDelayedEvents(events []DelayedEvent , condition func(e DelayedEvent) bool) (filteredEvents []DelayedEvent) {
+
+	for _, e := range events {
+		if condition(e) { filteredEvents = append(filteredEvents, e) }
+	}
+	return
+}
+
+// define helper function used to shuffle event queue
+func shuffleEvents(events []event) []event {
+
+	// define function used to shuffle values
+	shuffle := func(i, j int) { events[i], events[j] = events[j], events[i] }
+
+	// shuffle events in slice
+	rand.Shuffle(len(events), shuffle)
+
+	return events
+}

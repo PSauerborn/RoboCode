@@ -42,7 +42,7 @@ func processEventQueue(events []event) ([]event, []DelayedEvent) {
 func updateGameState() {
 
 	// iterate over robots and execute move functions
-	for _, robot := range robotGame.Robots { robot.Execute(robot) }
+	// for _, robot := range robotGame.Robots { robot.Execute(robot) }
 
 	// get events for immediate execution and for delayed execution from event queue
 	executeEvents, delayedEvents := processEventQueue(robotGame.EventQueue)
@@ -59,7 +59,7 @@ func updateGameState() {
 	}
 
 	// iterate over execute events and update game board state
-	for _, e := range executeEvents { 
+	for _, e := range shuffleEvents(executeEvents) { 
 
 		log.Debug(fmt.Sprintf("Sending Event %+v", e))
 
@@ -75,6 +75,18 @@ func updateGameState() {
 	log.Debug(fmt.Sprintf("Updated Game State to %+v", robotGame))
 }
 
+// Generic handler function called each tick one every robot.
+func tickHandler(robot Robot) {
+
+	// scan battle field for robots and emit event
+	for _, enemyRobot := range ScanBattleField(robot) { robot.controller.OnEnemyDetection(enemyRobot) }
+
+	Roam(robot)
+}
+
+// Define function used to execute game ticks
+func executeGameTick() { for _, robot := range robotGame.Robots { tickHandler(robot) }}
+
 // Function used to run a game and update
 // the game board based on robots and their moves
 func RunGame(robots []Robot) {
@@ -88,7 +100,7 @@ func RunGame(robots []Robot) {
 	robotGame = GameState{Robots: robots, EventQueue: []event{}, DelayedEventQueue: []DelayedEvent{}}
 
 	// Update Game state until all but one robot remain
-	for len(robotGame.Robots) > 1 { updateGameState(); time.Sleep(1e8) }
+	for len(robotGame.Robots) > 1 { executeGameTick(); updateGameState(); time.Sleep(1e8) }
 
 	if len(robotGame.Robots) > 0 {
 		winningRobot := robotGame.Robots[0]

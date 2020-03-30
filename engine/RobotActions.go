@@ -98,7 +98,17 @@ func ScanBattleField(robot Robot) []Robot {
 }
 
 // define function used to roam robot across battlefield
-func Roam(robot Robot) { if !isMoving(robot) { MoveRobot(robot, GetRandomPosition()) }} 
+func Roam(robot Robot) { 
+	
+	if !isMoving(robot) { 
+		log.Debug(fmt.Sprintf("Moving Robot %s", robot.RobotName))
+
+		MoveRobot(robot, GetRandomPosition()) 
+
+	} else {
+		log.Debug(fmt.Sprintf("Robot %s Already Moving", robot.RobotName))
+	}
+} 
 
 func ClearCommands(robot Robot) { 
 
