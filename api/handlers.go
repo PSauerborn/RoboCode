@@ -10,6 +10,23 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+func getGameConfig() (map[string]engine.RobotExecutionHandler, []map[string]string) {
+
+	// create config settings used to create robot
+	robotConfigs := []map[string]string{
+		{"name": "Kieran", "weapon": "Cannon", "chasis": "Ranger"},
+		{"name": "Pascal", "weapon": "Cannon", "chasis": "Tank"},
+	}
+
+	// create map of handler functions
+	robotHandlers := map[string]engine.RobotExecutionHandler{
+		"Kieran": handlers.KieranHandler,
+		"Pascal": handlers.PascalHandler,
+	}
+
+	return robotHandlers, robotConfigs
+}
+
 func RunGameHandler(writer http.ResponseWriter, request *http.Request) {
 
 	// upgrade connection to websocket type
@@ -33,17 +50,8 @@ func RunGameHandler(writer http.ResponseWriter, request *http.Request) {
 	// convert message to bytes and return
 	err = conn.WriteMessage(websocket.TextMessage, []byte("Starting Robot Battle"))
 
-	// create config settings used to create robot
-	robotConfigs := []map[string]string{
-		{"name": "Kieran", "weapon": "Cannon", "chasis": "Ranger"},
-		{"name": "Pascal", "weapon": "Cannon", "chasis": "Tank"},
-	}
-
-	// create map of handler functions
-	robotHandlers := map[string]engine.RobotExecutionHandler{
-		"Kieran": handlers.KieranHandler,
-		"Pascal": handlers.PascalHandler,
-	}
+	// get robot configuration settings and handlers from config
+	robotHandlers, robotConfigs := getGameConfig()
 
 	// iterate over list of configs and generate robots
 	robots, err := generateRobots(robotConfigs, robotHandlers)

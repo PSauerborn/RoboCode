@@ -9,14 +9,14 @@ import (
 
 // function used to emit a game event into the 
 // Game Event Queue
-func emitEvent(e event) {
+func emitEvent(robot Robot, e event) {
 
 	log.Debug(fmt.Sprintf("Emitting Event %#v", e))
 
 	robotGame.EventQueue = append(robotGame.EventQueue, e)
 }
 
-func emitDelayedEvent(e DelayedEvent) {
+func emitDelayedEvent(robot Robot, e DelayedEvent) {
 
 	log.Debug(fmt.Sprintf("Emitting Delayed Event %#v", e))
 
@@ -40,9 +40,9 @@ func MoveRobot(robot Robot, target Position) {
 		// created delayed move event for later execution
 		targetPosition := Position{x: robot.robotPosition.x + (float64(i) * xIncrement), y: robot.robotPosition.y + (float64(i) * yIncrement)}
 
-		event := DelayedEvent{Delay: i, Event: MoveEvent{robot: robot, target: targetPosition}}
+		event := DelayedEvent{Delay: i, Event: MoveEvent{SourceRobot: robot, target: targetPosition}}
 
-		emitDelayedEvent(event) 
+		emitDelayedEvent(robot, event) 
 	}
 }
 
@@ -64,12 +64,14 @@ func FireWeapon(robot Robot, target Robot) (bool, error) {
 		log.Debug("Weapon Shot Successfully. Emitting events")
 
 		// emit event used to fire weapon
-		emitEvent(FireWeaponEvent{robot: robot, target: target, weapon: robot.robotWeapon})
+		fireEvent := FireWeaponEvent{SourceRobot: robot, target: target, weapon: robot.robotWeapon}
+
+		emitEvent(robot, fireEvent)
 
 		// emit event used to damage target robot
-		damageEvent := DamageEvent{RobotName: target.RobotName, Damage: robot.robotWeapon.Damage}
+		damageEvent := DamageEvent{SourceRobot: robot, TargetRobot: target, Damage: robot.robotWeapon.Damage}
 
-		emitDelayedEvent(DelayedEvent{Delay: robot.robotWeapon.FireRate, Event: damageEvent})
+		emitDelayedEvent(robot, DelayedEvent{Delay: robot.robotWeapon.FireRate, Event: damageEvent})
 
 		return true, nil
 	}
@@ -95,6 +97,26 @@ func ScanBattleField(robot Robot) []Robot {
 	return robots
 }
 
-func ClearCommands(robot Robot) {
+// define function used to roam robot across battlefield
+func Roam(robot Robot) { if !isMoving(robot) { MoveRobot(robot, GetRandomPosition()) }} 
 
+func ClearCommands(robot Robot) { 
+
+	// filter out events based on robot name
+	events := []event{}
+
+	for _, event := range robotGame.EventQueue {
+		if !(event.EventSource() == robot.RobotName) { events = append(events, event) }
+	}
+
+	robotGame.EventQueue = events
+
+	// filter delayed events on robot name
+	delayedEvents := []DelayedEvent{}
+
+	for _, event := range robotGame.DelayedEventQueue {
+		if !(event.Event.EventSource() == robot.RobotName) { delayedEvents = append(delayedEvents, event) }
+	}
+
+	robotGame.DelayedEventQueue = delayedEvents
 }

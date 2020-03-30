@@ -13,16 +13,10 @@ import (
 type RobotExecutionHandler func(Robot)
 
 // define struct used to represent coordinates
-type Position struct{
-	x float64
-	y float64
-}
+type Position struct{ x, y float64 }
 
 // define struct used to define a robot chasis
-type Chasis struct{
-	Durability int
-	Weight int
-}
+type Chasis struct{ Durability, Weight int }
 
 // define strict used to define robot weapons
 type Weapon struct{
@@ -37,6 +31,7 @@ type Robot struct{
 	robotChasis Chasis
 	robotWeapon Weapon
 	Execute RobotExecutionHandler
+	controller RobotController
 }
 
 // Function used to generate a random set of starting
@@ -126,7 +121,79 @@ func CreateRobot(config map[string]string) (Robot, error) {
 	}
 
 	// create robot using the weapon and chasis generated from configuration settings
-	robot := Robot{RobotName: config["name"], robotPosition: generateStartingCoordinates(), robotChasis: chasis, robotWeapon: weapon}
+	robot := Robot{ 
+		RobotName: config["name"], 
+		robotPosition: generateStartingCoordinates(), 
+		robotChasis: chasis, 
+		robotWeapon: weapon,
+		controller: DefaultController{},
+	}
 
 	return robot, nil
+}
+
+// Alternate creation function used to create robots that are stored in maps
+// instead fo slices, which allows greater flexibility during game time. Robots
+// are created from a list of configuration maps that can be parsed from JSON
+// body sent with the request
+func CreateRobotsDict(robotConfigs []map[string]string, robotHandlers map[string]RobotExecutionHandler) (map[string]Robot, error) {
+
+	robots := map[string]Robot{}
+
+	// loop over given configuration objects and convert to robots
+	for _, config := range robotConfigs {
+
+		// convert configuration to robot using map
+		robot, err := CreateRobot(config)
+
+		if err != nil {
+			log.Error("Cannot Create Robots with given Configuration")
+
+			return map[string]Robot{}, err
+			
+		} else {
+			log.Info(fmt.Sprintf("Successfully Created Robot %s", robot.RobotName))
+			
+			// inject handler method used to handle robot move
+			robot.Execute = robotHandlers[robot.RobotName]
+			
+			// append robot to list of robots
+			robots[config["name"]] = robot
+		}
+	} 
+
+	return robots, nil
+}
+
+// Function used to generate a list of robots to play
+// a game. Robots are created from a list of Map configuration
+// settings, each of which contains the name, weapon and chasis
+// types used to define the settings of the robot
+func CreateRobotsSlice(robotConfigs []map[string]string, robotHandlers map[string]RobotExecutionHandler) ([]Robot, error) {
+
+	robots := []Robot{}
+
+	// loop over given configuration objects and convert to robots
+	for _, config := range robotConfigs {
+
+		// convert configuration to robot using map
+		robot, err := CreateRobot(config)
+
+		if err != nil {
+			log.Error("Cannot Create Robots with given Configuration")
+
+			return []Robot{}, err
+			
+		} else {
+			log.Info(fmt.Sprintf("Successfully Created Robot %s", robot.RobotName))
+			
+			// inject handler method used to handle robot move
+			robot.Execute = robotHandlers[robot.RobotName]
+			
+			// append robot to list of robots
+			robots = append(robots, robot)
+		}
+	} 
+
+	return robots, nil
 }

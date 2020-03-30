@@ -14,6 +14,8 @@ func getDistance(robot Robot, target Robot) float64 {
 	return math.Sqrt(math.Pow(xDiff, 2) - math.Pow(yDiff, 2))
 }
 
+// Helper function used to calculate the distane between two
+// Position struct objects
 func getPositionDistance(positionA, positionB Position) float64 {
 	
 	xDiff := positionA.x - positionB.x
@@ -32,6 +34,8 @@ func isInRange(robot Robot, target Robot) bool {
 	return distance < robot.robotWeapon.Range
 }
 
+// Helper function used to determine the tick price
+// associated with moving across a board
 func getTravelTime(robot Robot, distance float64) int {
 
 	ticks := float64(robot.robotChasis.Weight) * (distance / 1000)
@@ -39,6 +43,12 @@ func getTravelTime(robot Robot, distance float64) int {
 	return int(math.Floor(ticks))
 }
 
-
 func GetRandomPosition() Position { return generateStartingCoordinates() }
 
+// Helper function used to determine if a robot has
+// any move commands queued
+func isMoving(robot Robot) bool { return false }
+
+func isNearEdge(robot Robot) bool { return false }
+
+func isOverEdge(robot Robot) bool { return false }

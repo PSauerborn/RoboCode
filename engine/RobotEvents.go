@@ -6,8 +6,10 @@ import (
 )
 
 type event interface {
-	apply(game GameState) GameState
+	Apply(game GameState) GameState
 	TickCost() int 
+	EventSource() string
+	EventType() string
 }
 
 type DelayedEvent struct{ Delay int; Event event }
@@ -16,12 +18,16 @@ type DelayedEvent struct{ Delay int; Event event }
 // # Define interface used to assign damage to robots
 // ##################################################
 
-type DamageEvent struct { RobotName string; Damage int }
+type DamageEvent struct { SourceRobot, TargetRobot Robot; Damage int }
 
+func (e DamageEvent) EventSource() string { return e.SourceRobot.RobotName }
+
+func (e DamageEvent) EventType() string { return "Damage" }
+ 
 // Function used to define how a DamageEvent is applied
 // to the GameState. Damage Events are used to subtract
 // Durability from Robots
-func (e DamageEvent) apply(game GameState) GameState {
+func (e DamageEvent) Apply(game GameState) GameState {
 
 	robots := []Robot{}
 
@@ -29,7 +35,7 @@ func (e DamageEvent) apply(game GameState) GameState {
 	for _, robot := range game.Robots {
 
 		// decrease damage from robot health
-		if (robot.RobotName == e.RobotName) { robot.robotChasis.Durability -= e.Damage }
+		if (robot.RobotName == e.TargetRobot.RobotName) { robot.robotChasis.Durability -= e.Damage }
 
 		if (robot.robotChasis.Durability > 0) {
 			robots = append(robots, robot)
@@ -49,9 +55,13 @@ func (e DamageEvent) TickCost() int { return 0 }
 // # Define interface used to Fire Weapons
 // #######################################
 
-type FireWeaponEvent struct { robot, target Robot; weapon Weapon }
+type FireWeaponEvent struct { SourceRobot, target Robot; weapon Weapon }
 
-func (e FireWeaponEvent) apply(game GameState) GameState { return game }
+func (e FireWeaponEvent) EventSource() string { return e.SourceRobot.RobotName }
+
+func (e FireWeaponEvent) EventType() string { return "FireWeapon" }
+
+func (e FireWeaponEvent) Apply(game GameState) GameState { return game }
 
 func (e FireWeaponEvent) TickCost() int { return e.weapon.FireRate }
 
@@ -59,18 +69,26 @@ func (e FireWeaponEvent) TickCost() int { return e.weapon.FireRate }
 // # Define interface used to Move Robots
 // ######################################
 
-type MoveEvent struct { robot Robot; target Position }
+type MoveEvent struct { SourceRobot Robot; target Position }
 
-func (e MoveEvent) apply(game GameState) GameState { 
+func (e MoveEvent) EventSource() string { return e.SourceRobot.RobotName }
+
+func (e MoveEvent) EventType() string { return "Move" }
+
+func (e MoveEvent) Apply(game GameState) GameState { 
 
 	robots := []Robot{}
 
 	// loop over robots to find target robot and subtract damage
 	for _, robot := range game.Robots {
 
-		if (robot.RobotName == e.robot.RobotName) { robot.robotPosition = e.target }
+		if (robot.RobotName == e.SourceRobot.RobotName) { robot.robotPosition = e.target }
 
-		robots = append(robots, robot)
+		// fire wall collision event if robot is close to edge of map
+		if isNearEdge(robot) { robot.controller.OnWallCollision(robot) }
+
+		// remove robot if gone over edge
+		if !isOverEdge(robot) { robots = append(robots, robot) } 
 	}
 
 	game.Robots = robots

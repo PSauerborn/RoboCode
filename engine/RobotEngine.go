@@ -63,24 +63,24 @@ func updateGameState() {
 
 		log.Debug(fmt.Sprintf("Sending Event %+v", e))
 
-		robotGame = e.apply(robotGame) 
+		robotGame = e.Apply(robotGame) 
 	}
 
 	robotGame.DelayedEventQueue = delayedEvents
 	robotGame.EventQueue = []event{}
 
 	// send game update to UI over socket
-	websocketConnection.WriteJSON(robotGame.Robots)
+	// websocketConnection.WriteJSON(robotGame.Robots)
 
 	log.Debug(fmt.Sprintf("Updated Game State to %+v", robotGame))
 }
 
 // Function used to run a game and update
 // the game board based on robots and their moves
-func RunGame(robots []Robot, connection *websocket.Conn) {
+func RunGame(robots []Robot) {
 
 	// set global variable to point at socket
-	websocketConnection = connection
+	// websocketConnection = connection
 
 	log.Info("Starting New Robot Game")
 
