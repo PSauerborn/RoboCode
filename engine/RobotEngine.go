@@ -8,7 +8,7 @@ import (
 )
 
 // define struct used to keep track of the game state
-type GameState struct{ Robots []Robot; EventQueue []event; DelayedEventQueue []DelayedEvent}
+type GameState struct{ Robots []Robot; EventQueue []event; DelayedEventQueue []DelayedEvent; Destroyed []Robot}
 
 var robotGame GameState
 var websocketConnection *websocket.Conn
@@ -41,9 +41,6 @@ func processEventQueue(events []event) ([]event, []DelayedEvent) {
 
 func updateGameState() {
 
-	// iterate over robots and execute move functions
-	// for _, robot := range robotGame.Robots { robot.Execute(robot) }
-
 	// get events for immediate execution and for delayed execution from event queue
 	executeEvents, delayedEvents := processEventQueue(robotGame.EventQueue)
 
@@ -62,12 +59,15 @@ func updateGameState() {
 	for _, e := range shuffleEvents(executeEvents) { 
 
 		log.Debug(fmt.Sprintf("Sending Event %+v", e))
-
-		robotGame = e.Apply(robotGame) 
+		
+		if !robotIsDestroyed(e.EventSource()) { robotGame = e.Apply(robotGame) }
 	}
+
+	for _, robot := range robotGame.Destroyed { ClearCommands(robot) }
 
 	robotGame.DelayedEventQueue = delayedEvents
 	robotGame.EventQueue = []event{}
+	robotGame.Destroyed = []Robot{}
 
 	// send game update to UI over socket
 	// websocketConnection.WriteJSON(robotGame.Robots)
@@ -78,8 +78,10 @@ func updateGameState() {
 // Generic handler function called each tick one every robot.
 func tickHandler(robot Robot) {
 
+	enemyRobots := ScanBattleField(robot)
+
 	// scan battle field for robots and emit event
-	for _, enemyRobot := range ScanBattleField(robot) { robot.controller.OnEnemyDetection(enemyRobot) }
+	if len(enemyRobots) > 0 { robot.controller.OnEnemyDetection(robot, enemyRobots) }
 
 	Roam(robot)
 }
@@ -97,7 +99,7 @@ func RunGame(robots []Robot) {
 	log.Info("Starting New Robot Game")
 
 	// fill gamestate variables with new robots
-	robotGame = GameState{Robots: robots, EventQueue: []event{}, DelayedEventQueue: []DelayedEvent{}}
+	robotGame = GameState{Robots: robots, EventQueue: []event{}, DelayedEventQueue: []DelayedEvent{}, Destroyed: []Robot{}}
 
 	// Update Game state until all but one robot remain
 	for len(robotGame.Robots) > 1 { executeGameTick(); updateGameState(); time.Sleep(1e8) }

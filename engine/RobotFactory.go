@@ -30,7 +30,6 @@ type Robot struct{
 	robotPosition Position
 	robotChasis Chasis
 	robotWeapon Weapon
-	Execute RobotExecutionHandler
 	controller RobotController
 }
 
@@ -136,7 +135,7 @@ func CreateRobot(config map[string]string) (Robot, error) {
 // instead fo slices, which allows greater flexibility during game time. Robots
 // are created from a list of configuration maps that can be parsed from JSON
 // body sent with the request
-func CreateRobotsDict(robotConfigs []map[string]string, robotHandlers map[string]RobotExecutionHandler) (map[string]Robot, error) {
+func CreateRobotsDict(robotConfigs []map[string]string, robotControllers map[string]RobotController) (map[string]Robot, error) {
 
 	robots := map[string]Robot{}
 
@@ -155,7 +154,7 @@ func CreateRobotsDict(robotConfigs []map[string]string, robotHandlers map[string
 			log.Info(fmt.Sprintf("Successfully Created Robot %s", robot.RobotName))
 			
 			// inject handler method used to handle robot move
-			robot.Execute = robotHandlers[robot.RobotName]
+			robot.controller = robotControllers[robot.RobotName]
 			
 			// append robot to list of robots
 			robots[config["name"]] = robot
@@ -169,7 +168,7 @@ func CreateRobotsDict(robotConfigs []map[string]string, robotHandlers map[string
 // a game. Robots are created from a list of Map configuration
 // settings, each of which contains the name, weapon and chasis
 // types used to define the settings of the robot
-func CreateRobotsSlice(robotConfigs []map[string]string, robotHandlers map[string]RobotExecutionHandler) ([]Robot, error) {
+func CreateRobotsSlice(robotConfigs []map[string]string, robotControllers map[string]RobotController) ([]Robot, error) {
 
 	robots := []Robot{}
 
@@ -188,8 +187,8 @@ func CreateRobotsSlice(robotConfigs []map[string]string, robotHandlers map[strin
 			log.Info(fmt.Sprintf("Successfully Created Robot %s", robot.RobotName))
 			
 			// inject handler method used to handle robot move
-			robot.Execute = robotHandlers[robot.RobotName]
-			
+			robot.controller = robotControllers[robot.RobotName]
+
 			// append robot to list of robots
 			robots = append(robots, robot)
 		}

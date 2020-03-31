@@ -35,11 +35,23 @@ func isInRange(robot Robot, target Robot) bool {
 	return distance < robot.robotWeapon.Range
 }
 
+// Write function used to determine if aa shot has hit a target
+func shotHitTarget(robot, target Robot, weapon Weapon) bool {
+
+	// get distance between robots
+	distance := getDistance(robot, target)
+
+	// calculate distance penalty to shot accuracy
+	distancePenalty := (distance / weapon.Range) * weapon.Accuracy
+
+	return weapon.Accuracy > (rand.Float64() + distancePenalty)
+}
+
 // Helper function used to determine the tick price
 // associated with moving across a board
 func getTravelTime(robot Robot, distance float64) int {
 
-	ticks := float64(robot.robotChasis.Weight) * (distance / 1000)
+	ticks := float64(robot.robotChasis.Weight) * (distance / 100)
 
 	return int(math.Floor(ticks))
 }
@@ -60,6 +72,15 @@ func isMoving(robot Robot) bool {
 	hasExecutable := len(filterEvents(robotGame.EventQueue, conditionExecutable)) != 0
 
 	return hasDelayed && hasExecutable
+}
+
+func robotIsDestroyed(robot string) bool {
+	
+	for _, bot := range robotGame.Destroyed { 
+		if bot.RobotName == robot { return true }
+	}
+
+	return false
 }
 
 func isNearEdge(robot Robot) bool { return false }

@@ -1,15 +1,13 @@
 package main
 
 import (
-	// "./api"
 	"./engine"
-	"./handlers"
-	// "net/http"
+	"./controllers"
 	log "github.com/sirupsen/logrus"
 )
 
 
-func getGameConfig() (map[string]engine.RobotExecutionHandler, []map[string]string) {
+func getGameConfig() (map[string]engine.RobotController, []map[string]string) {
 
 	log.Debug("Getting Game configuration settings")
 
@@ -20,12 +18,12 @@ func getGameConfig() (map[string]engine.RobotExecutionHandler, []map[string]stri
 	}
 
 	// create map of handler functions
-	robotHandlers := map[string]engine.RobotExecutionHandler{
-		"Kieran": handlers.KieranHandler,
-		"Pascal": handlers.PascalHandler,
+	robotControllers := map[string]engine.RobotController{
+		"Kieran": engine.DefaultController{},
+		"Pascal": controllers.PascalController{},
 	}
 
-	return robotHandlers, robotConfigs
+	return robotControllers, robotConfigs
 }
 
 func main() {

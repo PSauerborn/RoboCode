@@ -20,7 +20,7 @@ type DelayedEvent struct{ Delay int; Event event }
 
 type DamageEvent struct { SourceRobot, TargetRobot Robot; Damage int }
 
-func (e DamageEvent) EventSource() string { return e.SourceRobot.RobotName }
+func (e DamageEvent) EventSource() string { return e.TargetRobot.RobotName }
 
 func (e DamageEvent) EventType() string { return "Damage" }
  
@@ -41,6 +41,9 @@ func (e DamageEvent) Apply(game GameState) GameState {
 			robots = append(robots, robot)
 		} else {
 			log.Info(fmt.Sprintf("Destroyed Robot %s", robot.RobotName))
+			
+			// append destroyed robot to game
+			game.Destroyed = append(game.Destroyed, robot)
 		}
 	}
 
@@ -85,7 +88,7 @@ func (e MoveEvent) Apply(game GameState) GameState {
 		if (robot.RobotName == e.SourceRobot.RobotName) { robot.robotPosition = e.target }
 
 		// fire wall collision event if robot is close to edge of map
-		if isNearEdge(robot) { robot.controller.OnWallCollision(robot) }
+		if isNearEdge(robot) { robot.controller.OnMapEdgeWarning(robot) }
 
 		// remove robot if gone over edge
 		if !isOverEdge(robot) { robots = append(robots, robot) } 

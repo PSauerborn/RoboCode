@@ -2,7 +2,6 @@ package engine
 
 import (
 	"fmt"
-	"math/rand"
 	log "github.com/sirupsen/logrus"
 	"errors"
 )
@@ -59,7 +58,7 @@ func FireWeapon(robot Robot, target Robot) (bool, error) {
 	}
 
 	// determine whether or not shot hit based on accuracy
-	if (robot.robotWeapon.Accuracy > rand.Float64()) {
+	if shotHitTarget(robot, target, robot.robotWeapon) {
 
 		log.Debug("Weapon Shot Successfully. Emitting events")
 
@@ -71,7 +70,7 @@ func FireWeapon(robot Robot, target Robot) (bool, error) {
 		// emit event used to damage target robot
 		damageEvent := DamageEvent{SourceRobot: robot, TargetRobot: target, Damage: robot.robotWeapon.Damage}
 
-		emitDelayedEvent(robot, DelayedEvent{Delay: robot.robotWeapon.FireRate, Event: damageEvent})
+		emitDelayedEvent(robot, DelayedEvent{Delay: 1, Event: damageEvent})
 
 		return true, nil
 	}
@@ -109,6 +108,29 @@ func Roam(robot Robot) {
 		log.Debug(fmt.Sprintf("Robot %s Already Moving", robot.RobotName))
 	}
 } 
+
+// helper function used to clear all movement events from a robots
+// settings 
+func StopRobot(robot Robot) {
+
+	// filter out events based on robot name
+	events := []event{}
+
+	for _, event := range robotGame.EventQueue {
+		if (event.EventSource() == robot.RobotName && event.EventType() == "Move") {} else { events = append(events, event) }
+	}
+
+	robotGame.EventQueue = events
+
+	// filter delayed events on robot name
+	delayedEvents := []DelayedEvent{}
+
+	for _, event := range robotGame.DelayedEventQueue {
+		if (event.Event.EventSource() == robot.RobotName && event.Event.EventType() == "Move") {} else { delayedEvents = append(delayedEvents, event) }
+	}
+
+	robotGame.DelayedEventQueue = delayedEvents
+}
 
 func ClearCommands(robot Robot) { 
 
