@@ -21,4 +21,3 @@ func(controller DefaultController) OnMapEdgeWarning(robot Robot) {}
 func(controller DefaultController) OnRobotCollision(robot Robot) {}
 
 func(controller DefaultController) OnDamage(robot Robot) {}
-

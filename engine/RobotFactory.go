@@ -9,9 +9,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// define interface used to run robots
-type RobotExecutionHandler func(Robot)
-
 // define struct used to represent coordinates
 type Position struct{ x, y float64 }
 
@@ -37,17 +34,11 @@ type Robot struct{
 // coordinates based on environment variables set
 func generateStartingCoordinates() Position {
 
-	log.Debug("Generating new Starting Position")
-
 	// get combat zone length from environment variables
 	CombatZoneLength, err := strconv.ParseFloat(os.Getenv("COMBAT_ZONE_LENGTH"), 64)
 
 	// set default value if value has not been specified in environs
-	if (err != nil || CombatZoneLength == 0) {
-		log.Debug("Combat Zone size not Set. Defaulting to 100")
-
-		CombatZoneLength = 100
-	}
+	if (err != nil || CombatZoneLength == 0) { CombatZoneLength = 100 }
 
 	return Position{x: rand.Float64() * CombatZoneLength, y: rand.Float64() * CombatZoneLength}
 }
@@ -67,9 +58,7 @@ func generateRobotChasis(ChasisType string) (Chasis, error) {
 	log.Info(fmt.Sprintf("Creating Robot with Chasis %s", ChasisType))
 
 	// return chasis if chasis type is valid
-	if chasis, ok := allowedChasisTypes[ChasisType]; ok {
-		return chasis, nil
-	}
+	if chasis, ok := allowedChasisTypes[ChasisType]; ok {return chasis, nil }
 
 	return Chasis{}, errors.New("Invalid Chasis Configuration")
 }
@@ -89,9 +78,7 @@ func generateRobotWeapon(WeaponType string) (Weapon, error) {
 	log.Info(fmt.Sprintf("Creating Robot with Weapon %s", WeaponType))
 
 	// return weapon if specified weapon type is valid
-	if weapon, ok := allowedWeaponTypes[WeaponType]; ok {
-		return weapon, nil
-	}
+	if weapon, ok := allowedWeaponTypes[WeaponType]; ok { return weapon, nil }
 
 	return Weapon{}, errors.New("Invalid Weapon Configuration")
 }
