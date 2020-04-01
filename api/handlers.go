@@ -2,15 +2,16 @@ package api
 
 
 import (
-	"../handlers"
+	"../controllers"
 	"../engine"
 	"net/http"
 	"fmt"
-	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
 )
 
-func getGameConfig() (map[string]engine.RobotExecutionHandler, []map[string]string) {
+func getGameConfig() (map[string]engine.RobotController, []map[string]string) {
+
+	log.Debug("Getting Game configuration settings")
 
 	// create config settings used to create robot
 	robotConfigs := []map[string]string{
@@ -19,12 +20,12 @@ func getGameConfig() (map[string]engine.RobotExecutionHandler, []map[string]stri
 	}
 
 	// create map of handler functions
-	robotHandlers := map[string]engine.RobotExecutionHandler{
-		"Kieran": handlers.KieranHandler,
-		"Pascal": handlers.PascalHandler,
+	robotControllers := map[string]engine.RobotController{
+		"Kieran": engine.DefaultController{},
+		"Pascal": controllers.PascalController{},
 	}
 
-	return robotHandlers, robotConfigs
+	return robotControllers, robotConfigs
 }
 
 func RunGameHandler(writer http.ResponseWriter, request *http.Request) {
@@ -47,14 +48,14 @@ func RunGameHandler(writer http.ResponseWriter, request *http.Request) {
 	
 	log.Info(fmt.Sprintf("Received Message %+v", p))
 
-	// convert message to bytes and return
-	err = conn.WriteMessage(websocket.TextMessage, []byte("Starting Robot Battle"))
+	// // convert message to bytes and return
+	// err = conn.WriteMessage(websocket.TextMessage, []byte("Starting Robot Battle"))
 
 	// get robot configuration settings and handlers from config
-	robotHandlers, robotConfigs := getGameConfig()
+	robotControllers, robotConfigs := getGameConfig()
 
 	// iterate over list of configs and generate robots
-	robots, err := generateRobots(robotConfigs, robotHandlers)
+	robots, err := engine.CreateRobotsSlice(robotConfigs, robotControllers)
 
 	if err != nil {
 		log.Error("Unable To Create Robots with given Configuration")

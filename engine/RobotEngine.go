@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 	"github.com/gorilla/websocket"
+	"encoding/json"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -69,8 +70,12 @@ func updateGameState() {
 	robotGame.EventQueue = []event{}
 	robotGame.Destroyed = []Robot{}
 
+	update := GamestateEvent{ EventType: "GamestateEvent", Robots: createUpdate(robotGame.Robots) }
+
+	payload, _ := json.Marshal(update)
+	
 	// send game update to UI over socket
-	// websocketConnection.WriteJSON(robotGame.Robots)
+	websocketConnection.WriteMessage(websocket.TextMessage, payload)
 
 	log.Debug(fmt.Sprintf("Updated Game State to %+v", robotGame))
 }
@@ -91,10 +96,10 @@ func executeGameTick() { for _, robot := range robotGame.Robots { tickHandler(ro
 
 // Function used to run a game and update
 // the game board based on robots and their moves
-func RunGame(robots []Robot) {
+func RunGame(robots []Robot, connection *websocket.Conn) {
 
 	// set global variable to point at socket
-	// websocketConnection = connection
+	websocketConnection = connection
 
 	log.Info("Starting New Robot Game")
 
@@ -109,4 +114,6 @@ func RunGame(robots []Robot) {
 
 		log.Info(fmt.Sprintf("Success! Robot %s has Won!", winningRobot.RobotName))
 	}	
+
+	websocketConnection.Close()
 }

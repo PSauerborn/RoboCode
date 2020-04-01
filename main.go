@@ -4,6 +4,8 @@ import (
 	"./engine"
 	"./controllers"
 	log "github.com/sirupsen/logrus"
+	"net/http"
+	"./api"
 )
 
 
@@ -28,20 +30,20 @@ func getGameConfig() (map[string]engine.RobotController, []map[string]string) {
 
 func main() {
 
-	log.SetLevel(log.DebugLevel)
+	log.SetLevel(log.InfoLevel)
 
-	// // get router and start websocket server
-	// router := api.GetRouter()
-	// http.ListenAndServe(":8844", router)
+	// get router and start websocket server
+	router := api.GetRouter()
+	http.ListenAndServe(":10999", router)
 
-	handlers, configs := getGameConfig()
+	// handlers, configs := getGameConfig()
 
-	robots, err := engine.CreateRobotsSlice(configs, handlers)
+	// robots, err := engine.CreateRobotsSlice(configs, handlers)
 
-	if (err != nil) {
-		log.Fatal("Unable to Create robots with given configuration")
+	// if (err != nil) {
+	// 	log.Fatal("Unable to Create robots with given configuration")
 
-	} else {
-		engine.RunGame(robots)
-	}
+	// } else {
+	// 	engine.RunGame(robots)
+	// }
 }
