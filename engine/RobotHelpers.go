@@ -51,7 +51,7 @@ func shotHitTarget(robot, target Robot, weapon Weapon) bool {
 // associated with moving across a board
 func getTravelTime(robot Robot, distance float64) int {
 
-	ticks := float64(robot.robotChasis.Weight) * (distance / 100)
+	ticks := float64(robot.robotChasis.Weight) * (distance / 500)
 
 	return int(math.Floor(ticks))
 }
@@ -66,12 +66,11 @@ func isMoving(robot Robot) bool {
 	conditionDelayed := func(e DelayedEvent) bool { return (e.Event.EventSource() == robot.RobotName && e.Event.EventType() == "Move") }
 	conditionExecutable := func(e event) bool { return (e.EventSource() == robot.RobotName && e.EventType() == "Move") }
 
-
 	// determine if robot has queued events that match moving event types
 	hasDelayed := len(filterDelayedEvents(robotGame.DelayedEventQueue, conditionDelayed)) != 0
 	hasExecutable := len(filterEvents(robotGame.EventQueue, conditionExecutable)) != 0
 
-	return hasDelayed && hasExecutable
+	return hasDelayed || hasExecutable
 }
 
 func robotIsDestroyed(robot string) bool {

@@ -106,6 +106,10 @@ func RunGame(robots []Robot, connection *websocket.Conn) {
 	// fill gamestate variables with new robots
 	robotGame = GameState{Robots: robots, EventQueue: []event{}, DelayedEventQueue: []DelayedEvent{}, Destroyed: []Robot{}}
 
+	// send starting event to UI 
+	event := GamestateEvent{ EventType: "GameStartEvent", Robots: createUpdate(robotGame.Robots)}
+	websocketConnection.WriteJSON(event)
+
 	// Update Game state until all but one robot remain
 	for len(robotGame.Robots) > 1 { executeGameTick(); updateGameState(); time.Sleep(1e8) }
 

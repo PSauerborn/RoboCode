@@ -38,7 +38,7 @@ func generateStartingCoordinates() Position {
 	CombatZoneLength, err := strconv.ParseFloat(os.Getenv("COMBAT_ZONE_LENGTH"), 64)
 
 	// set default value if value has not been specified in environs
-	if (err != nil || CombatZoneLength == 0) { CombatZoneLength = 100 }
+	if (err != nil || CombatZoneLength == 0) { CombatZoneLength = 750 }
 
 	return Position{x: rand.Float64() * CombatZoneLength, y: rand.Float64() * CombatZoneLength}
 }

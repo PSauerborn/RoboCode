@@ -100,12 +100,12 @@ func ScanBattleField(robot Robot) []Robot {
 func Roam(robot Robot) { 
 	
 	if !isMoving(robot) { 
-		log.Debug(fmt.Sprintf("Moving Robot %s", robot.RobotName))
+		log.Info(fmt.Sprintf("Moving Robot %s", robot.RobotName))
 
 		MoveRobot(robot, GetRandomPosition()) 
 
 	} else {
-		log.Debug(fmt.Sprintf("Robot %s Already Moving", robot.RobotName))
+		log.Info(fmt.Sprintf("Robot %s Already Moving", robot.RobotName))
 	}
 } 
 
