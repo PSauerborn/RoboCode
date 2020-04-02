@@ -15,14 +15,18 @@ func getGameConfig() (map[string]engine.RobotController, []map[string]string) {
 
 	// create config settings used to create robot
 	robotConfigs := []map[string]string{
-		{"name": "Kieran", "weapon": "Cannon", "chasis": "Ranger"},
-		{"name": "Pascal", "weapon": "Cannon", "chasis": "Tank"},
+		{"name": "Kieran", "weapon": "Cannon", "chasis": "Tank"},
+		{"name": "Pascal", "weapon": "Sniper", "chasis": "Tank"},
+		{"name": "Callum", "weapon": "Rifle", "chasis": "Tank"},
+		{"name": "Karl", "weapon": "Rifle", "chasis": "Tank"},
 	}
 
 	// create map of handler functions
 	robotControllers := map[string]engine.RobotController{
-		"Kieran": engine.DefaultController{},
+		"Kieran": controllers.KieranController{},
 		"Pascal": controllers.PascalController{},
+		"Callum": controllers.CallumController{},
+		"Karl": controllers.KarlController{},
 	}
 
 	return robotControllers, robotConfigs

@@ -42,7 +42,7 @@ func (e DamageEvent) Apply(game GameState) GameState {
 			message := fmt.Sprintf("Robot %s has taken %v damage from %s!", robot.RobotName, e.Damage, e.SourceRobot.RobotName)
 			
 			// send update yo web UI via websocket
-			websocketConnection.WriteJSON(WebsocketEvent{ EventType: "RobotDamaged", EventMessage: message })
+			websocketConnection.WriteJSON(WebsocketEvent{ EventType: "RobotDamaged", EventMessage: message, EventSource: robot.RobotName })
 		}
 
 		if (robot.robotChasis.Durability > 0) { 
@@ -57,7 +57,7 @@ func (e DamageEvent) Apply(game GameState) GameState {
 			message := fmt.Sprintf("Robot %s has been Destroyed by %s!", robot.RobotName, e.SourceRobot.RobotName)
 			
 			// send update yo web UI via websocket
-			websocketConnection.WriteJSON(WebsocketEvent{ EventType: "RobotDestroyed", EventMessage: message })
+			websocketConnection.WriteJSON(WebsocketEvent{ EventType: "RobotDestroyed", EventMessage: message, EventSource: robot.RobotName })
 		}
 	}
 
@@ -78,19 +78,10 @@ func (e FireWeaponEvent) EventSource() string { return e.SourceRobot.RobotName }
 
 func (e FireWeaponEvent) EventType() string { return "FireWeapon" }
 
-func (e FireWeaponEvent) Apply(game GameState) GameState { 
-	
-	message := fmt.Sprintf("Robot %s has fired his weapon!", e.SourceRobot.RobotName)
+func (e FireWeaponEvent) Apply(game GameState) GameState { return game }
 
-	log.Info("Firing Event Sent")
-			
-	// send update to web UI via websocket
-	websocketConnection.WriteJSON(WebsocketEvent{ EventType: "WeaponFired", EventMessage: message })
-
-	return game 
-}
-
-func (e FireWeaponEvent) TickCost() int { return e.weapon.FireRate }
+// func (e FireWeaponEvent) TickCost() int { return e.weapon.FireRate }
+func (e FireWeaponEvent) TickCost() int { return 1 }
 
 // ######################################
 // # Define interface used to Move Robots
@@ -125,6 +116,34 @@ func (e MoveEvent) Apply(game GameState) GameState {
 
 func (e MoveEvent) TickCost() int { return 0 }
 
+// #########################################
+// # Define interface used to Reload Weapons
+// #########################################
+
+type ReloadEvent struct { SourceRobot Robot }
+
+func (e ReloadEvent) EventSource() string { return e.SourceRobot.RobotName }
+
+func (e ReloadEvent) EventType() string { return "Reload" }
+
+func (e ReloadEvent) Apply(game GameState) GameState { 
+
+	robots := []Robot{}
+
+	// loop over robots to find target robot and subtract damage
+	for _, robot := range game.Robots {
+
+		if (robot.RobotName == e.SourceRobot.RobotName) { robot.robotWeapon.Reloading = !robot.robotWeapon.Reloading  }
+
+		robots = append(robots, robot)
+	}
+
+	game.Robots = robots
+
+	return game
+}
+
+func (e ReloadEvent) TickCost() int { return 1 }
 
 
 

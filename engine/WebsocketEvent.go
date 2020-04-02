@@ -4,7 +4,7 @@ import (
 
 )
 
-type WebsocketEvent struct{ EventType, EventMessage string }
+type WebsocketEvent struct{ EventType, EventMessage, EventSource string }
 
 type GamestateEvent struct{ EventType string; Robots []RobotUpdate }
 

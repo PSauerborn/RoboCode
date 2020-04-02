@@ -111,7 +111,7 @@ func RunGame(robots []Robot, connection *websocket.Conn) {
 	websocketConnection.WriteJSON(event)
 
 	// Update Game state until all but one robot remain
-	for len(robotGame.Robots) > 1 { executeGameTick(); updateGameState(); time.Sleep(1e8) }
+	for len(robotGame.Robots) > 1 { executeGameTick(); updateGameState(); time.Sleep(1e6) }
 
 	if len(robotGame.Robots) > 0 {
 		winningRobot := robotGame.Robots[0]

@@ -50,6 +50,11 @@ func MoveRobot(robot Robot, target Position) {
 // is based on chance and weapon accuracy
 func FireWeapon(robot Robot, target Robot) (bool, error) {
 
+	if robot.robotWeapon.Reloading { 
+		log.Info(fmt.Sprintf("Robot %s Reloading", robot.RobotName))
+		return false, errors.New("Weapon Reloading")
+	}
+
 	log.Info(fmt.Sprintf("Robot %s Firing at %s", robot.RobotName, target.RobotName))
 
 	// return false and error if target robot is not in range
@@ -62,6 +67,8 @@ func FireWeapon(robot Robot, target Robot) (bool, error) {
 
 		log.Debug("Weapon Shot Successfully. Emitting events")
 
+		websocketConnection.WriteJSON(WebsocketEvent{ EventType: "WeaponFire", EventMessage: fmt.Sprintf("%s has Fired and Hit %s!", robot.RobotName, target.RobotName), EventSource: robot.RobotName})
+
 		// emit event used to fire weapon
 		fireEvent := FireWeaponEvent{SourceRobot: robot, target: target, weapon: robot.robotWeapon}
 
@@ -73,9 +80,16 @@ func FireWeapon(robot Robot, target Robot) (bool, error) {
 		emitDelayedEvent(robot, DelayedEvent{Delay: 1, Event: damageEvent})
 
 		return true, nil
+
+	} else {
+		websocketConnection.WriteJSON(WebsocketEvent{ EventType: "WeaponFire", EventMessage: fmt.Sprintf("%s has Fired and Missed %s!", robot.RobotName, target.RobotName), EventSource: robot.RobotName})
 	}
 
 	log.Debug("Weapon Shot Missed")
+
+	emitEvent(robot, ReloadEvent{ SourceRobot: robot })
+
+	emitDelayedEvent(robot,  DelayedEvent{Delay: robot.robotWeapon.FireRate * 1e3 , Event: ReloadEvent{ SourceRobot: robot }})
 
 	return false, errors.New("Missed Target Robot")
 }
@@ -88,7 +102,7 @@ func ScanBattleField(robot Robot) []Robot {
 	for _, inGameRobot := range robotGame.Robots {
 
 		// if enemy robot is in range of scanner, add enemy to list
-		if (inGameRobot.RobotName != robot.RobotName && getDistance(robot, inGameRobot) < 20) {
+		if (inGameRobot.RobotName != robot.RobotName && getDistance(robot, inGameRobot) < robot.robotWeapon.Range) {
 			robots = append(robots, inGameRobot)
 		}
 	}
@@ -100,12 +114,12 @@ func ScanBattleField(robot Robot) []Robot {
 func Roam(robot Robot) { 
 	
 	if !isMoving(robot) { 
-		log.Info(fmt.Sprintf("Moving Robot %s", robot.RobotName))
+		log.Debug(fmt.Sprintf("Moving Robot %s", robot.RobotName))
 
 		MoveRobot(robot, GetRandomPosition()) 
 
 	} else {
-		log.Info(fmt.Sprintf("Robot %s Already Moving", robot.RobotName))
+		log.Debug(fmt.Sprintf("Robot %s Already Moving", robot.RobotName))
 	}
 } 
 

@@ -12,7 +12,7 @@ func getDistance(robot Robot, target Robot) float64 {
 	xDiff := robot.robotPosition.x - target.robotPosition.x
 	yDiff := robot.robotPosition.y - target.robotPosition.y
 
-	return math.Sqrt(math.Pow(xDiff, 2) - math.Pow(yDiff, 2))
+	return math.Sqrt(math.Pow(xDiff, 2) + math.Pow(yDiff, 2))
 }
 
 // Helper function used to calculate the distane between two
@@ -22,7 +22,7 @@ func getPositionDistance(positionA, positionB Position) float64 {
 	xDiff := positionA.x - positionB.x
 	yDiff := positionA.y - positionB.y
 
-	return math.Sqrt(math.Pow(xDiff, 2) - math.Pow(yDiff, 2))
+	return math.Sqrt(math.Pow(xDiff, 2) + math.Pow(yDiff, 2))
 }
 
 // Helper function used to determine if a target robot
@@ -51,7 +51,7 @@ func shotHitTarget(robot, target Robot, weapon Weapon) bool {
 // associated with moving across a board
 func getTravelTime(robot Robot, distance float64) int {
 
-	ticks := float64(robot.robotChasis.Weight) * (distance / 500)
+	ticks := float64(robot.robotChasis.Weight) * (distance / 35)
 
 	return int(math.Floor(ticks))
 }

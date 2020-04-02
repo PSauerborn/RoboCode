@@ -19,6 +19,7 @@ type Chasis struct{ Durability, Weight int }
 type Weapon struct{
 	Damage, FireRate int 
 	Accuracy, Range float64
+	Reloading bool
 }
 
 // define struct used to define robot
@@ -46,9 +47,9 @@ func generateStartingCoordinates() Position {
 
 // define mapping used to relate string inputs to chasis types
 var allowedChasisTypes = map[string]Chasis{
-	"Tank": Chasis{Durability: 100, Weight: 100},
-	"Ranger": Chasis{Durability: 50, Weight: 60},
-	"Buggy": Chasis{Durability: 20, Weight: 10},
+	"Tank": Chasis{Durability: 200, Weight: 100},
+	"Ranger": Chasis{Durability: 100, Weight: 60},
+	"Buggy": Chasis{Durability: 40, Weight: 10},
 }                                                            
 
 // Function used to create the chasis for a robot. Chasis
@@ -66,9 +67,9 @@ func generateRobotChasis(ChasisType string) (Chasis, error) {
 
 // define mapping used to relate string inputs to chasis types
 var allowedWeaponTypes = map[string]Weapon{
-	"Cannon": Weapon{Damage: 100, Range: 50, FireRate: 3, Accuracy: 0.3},
-	"Sniper": Weapon{Damage: 50, Range: 100, FireRate: 2, Accuracy: 0.9},
-	"Rifle": Weapon{Damage: 20, Range: 60, FireRate: 1, Accuracy: 0.7},
+	"Cannon": Weapon{Damage: 100, Range: 200, FireRate: 3, Accuracy: 0.3, Reloading: false},
+	"Sniper": Weapon{Damage: 50, Range: 400, FireRate: 2, Accuracy: 0.7, Reloading: false},
+	"Rifle": Weapon{Damage: 20, Range: 300, FireRate: 1, Accuracy: 0.5, Reloading: false},
 }         
 
 // Function used to create the weapon for a robot. Weapons
